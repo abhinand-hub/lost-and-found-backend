@@ -68,19 +68,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ================= PICK IMAGE =================
-  Future<void> _pickImage() async {
+  Future<void> pickImage() async {
     final picker = ImagePicker();
-
-    final pickedFile = await picker.pickImage(
+    final picked = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: 512,
-      maxHeight: 512,
+      imageQuality: 70, // 🔥 first level compression
     );
 
-    if (pickedFile != null) {
-      setState(() => _imageFile = pickedFile);
-      await _uploadImage();
+    if (picked != null) {
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          webImage = bytes;
+        });
+      } else {
+        File file = File(picked.path);
+
+        // 🔥 compress here
+        File compressed = await compressImage(file);
+
+        setState(() {
+          imageFile = compressed;
+        });
+      }
     }
   }
 
