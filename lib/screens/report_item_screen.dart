@@ -172,6 +172,7 @@ class _ReportItemScreenState extends State<ReportItemScreen> {
         'date': DateTime.now().toIso8601String(),
         'user_id': user.id,
         'matched': false,
+        'status': 'active',
         'image_url': imageUrl,
       };
 
@@ -189,14 +190,17 @@ class _ReportItemScreenState extends State<ReportItemScreen> {
         itemId = response.first['id'];
         // 🔥 CALL BACKEND FOR MATCHING
         // 🔥 HERE
-        http
-            .post(
-              Uri.parse(
-                  "https://lost-and-found-backend-9iky.onrender.com/match"),
-              headers: {"Content-Type": "application/json"},
-              body: jsonEncode({"item_id": itemId}),
-            )
-            .timeout(const Duration(seconds: 10));
+        try {
+          final response = await http.post(
+            Uri.parse("https://lost-and-found-backend-9iky.onrender.com/match"),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({"item_id": itemId}),
+          );
+
+          print("MATCH RESPONSE: ${response.body}");
+        } catch (e) {
+          print("MATCH ERROR: $e");
+        }
         if (mounted) {
           GlobalNotification.show(context, "Report Submitted Successfully!");
         }

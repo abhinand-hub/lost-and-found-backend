@@ -49,10 +49,14 @@ def preprocess_image(img):
 
 # ---------------- IMAGE COMPARISON ----------------
 def compare_images(url1, url2):
+    print("🖼️ Image1:", url1)
+    print("🖼️ Image2:", url2)
+
     img1 = load_image(url1)
     img2 = load_image(url2)
 
     if img1 is None or img2 is None:
+        print("❌ Image loading failed")
         return 0
 
     # 🔥 Apply preprocessing
@@ -65,6 +69,7 @@ def compare_images(url1, url2):
     kp2, des2 = orb.detectAndCompute(proc2, None)
 
     if des1 is None or des2 is None:
+        print("❌ No descriptors found")
         return 0
 
     bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -74,6 +79,8 @@ def compare_images(url1, url2):
     for m, n in matches:
         if m.distance < 0.75 * n.distance:
             good.append(m)
+
+    print("✅ Good matches:", len(good))
 
     return len(good)
 

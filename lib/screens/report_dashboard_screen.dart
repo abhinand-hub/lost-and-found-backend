@@ -115,7 +115,8 @@ class _ReportDashboardScreenState extends State<ReportDashboardScreen> {
                         const SizedBox(height: 4),
 
                         /// ⭐ STATUS LABEL
-                        if (item['status'] == 'matched')
+                        if (item['status'] == 'matched' &&
+                            item['matched'] == true)
                           const Row(
                             children: [
                               Icon(Icons.verified,
