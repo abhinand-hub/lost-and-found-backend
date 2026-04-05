@@ -17,6 +17,7 @@ dependencies:
   url_launcher: ^6.2.5
   shared_preferences: ^2.2.2   
   http: ^1.6.0
+  flutter_image_compress: ^2.0.4
 
 dev_dependencies:
   flutter_test:
