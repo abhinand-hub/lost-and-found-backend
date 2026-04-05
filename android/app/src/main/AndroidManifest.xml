@@ -1,6 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:label="flutter_app"
+        <queries>
+  <intent>
+    <action android:name="android.intent.action.VIEW" />
+    <data android:scheme="https" />
+  </intent>
+</queries>
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

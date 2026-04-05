@@ -195,6 +195,41 @@ class MatchDetailsScreen extends StatelessWidget {
                                 await launchUrl(uri);
                               },
                             ),
+                            ListTile(
+                              leading:
+                                  const Icon(Icons.chat, color: Colors.green),
+                              title: const Text("WhatsApp"),
+                              onTap: () async {
+                                final phone = matchedItem['contact'];
+
+                                if (phone == null || phone.toString().isEmpty) {
+                                  GlobalNotification.show(
+                                      context, "No contact number ❌");
+                                  return;
+                                }
+
+                                // IMPORTANT: remove spaces and add country code
+                                String formattedPhone =
+                                    phone.toString().replaceAll(" ", "");
+
+                                // Example: India => +91
+                                if (!formattedPhone.startsWith("+")) {
+                                  formattedPhone = "91$formattedPhone";
+                                }
+
+                                final Uri uri = Uri.parse(
+                                  "https://wa.me/$formattedPhone?text=Hi, I found your lost item on the app!",
+                                );
+
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri,
+                                      mode: LaunchMode.externalApplication);
+                                } else {
+                                  GlobalNotification.show(
+                                      context, "WhatsApp not available ❌");
+                                }
+                              },
+                            ),
                           ],
                         ),
                       );
