@@ -321,6 +321,7 @@ class _HomeContentState extends State<HomeContent> {
   final supabase = Supabase.instance.client;
   final TextEditingController _searchController = TextEditingController();
   List items = [];
+  List matches = [];
   bool loading = true;
   String searchQuery = "";
   String selectedCategory = "All";
@@ -328,6 +329,18 @@ class _HomeContentState extends State<HomeContent> {
   void initState() {
     super.initState();
     listenToItems(); // ✅ realtime
+    supabase
+        .channel('matches_changes')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'matches',
+          callback: (payload) {
+            print("🔥 MATCH DETECTED");
+            fetchItems(); // 🔥 THIS IS KEY
+          },
+        )
+        .subscribe();
   }
 
   void listenToItems() async {
@@ -433,6 +446,16 @@ class _HomeContentState extends State<HomeContent> {
         ),
       ],
     );
+  }
+
+  Future<void> fetchMatches() async {
+    final data = await Supabase.instance.client.from('matches').select();
+
+    setState(() {
+      matches = data;
+    });
+
+    print("Fetched matches: $data");
   }
 }
 
@@ -663,12 +686,27 @@ class _LostItemCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    LinearProgressIndicator(
-                      value: 0.7,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation<Color>(secondaryColor),
-                      borderRadius: BorderRadius.circular(8),
-                      minHeight: 6,
+                    Builder(
+                      builder: (context) {
+                        bool isMatched = item['matched'] == true;
+
+                        return isMatched
+                            ? const Text(
+                                "🎉 Match Found!",
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : LinearProgressIndicator(
+                                value: 0.7,
+                                backgroundColor: Colors.grey.shade200,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    secondaryColor),
+                                borderRadius: BorderRadius.circular(8),
+                                minHeight: 6,
+                              );
+                      },
                     ),
                   ],
                 ),

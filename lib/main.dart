@@ -12,7 +12,27 @@ Future<void> main() async {
     anonKey: 'sb_publishable_kw48P_tlfkDNQP6-7kZpqw_MLI99KuE',
   );
 
-  // 🔥 Clean auth redirect URL
+  // 🔥 ADD THIS BLOCK HERE
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+    print("Auth state changed: ${data.event}");
+
+    if (data.event == AuthChangeEvent.tokenRefreshed) {
+      print("✅ Token refreshed");
+    }
+
+    if (data.event == AuthChangeEvent.signedOut) {
+      print("❌ User signed out");
+    }
+
+    if (data.event == AuthChangeEvent.userUpdated) {
+      print("🔄 User updated");
+    }
+  });
+
+  // 🔥 keep your existing refresh
+  await Supabase.instance.client.auth.refreshSession();
+
+  // 🔥 your URL clean logic
   final uri = Uri.base;
   if (uri.queryParameters.containsKey('code')) {
     final cleanUri = Uri(
@@ -21,8 +41,6 @@ Future<void> main() async {
       port: uri.port,
       path: uri.path,
     );
-    // replace URL without reloading page
-    // ignore: undefined_prefixed_name
     html.window.history.replaceState(null, '', cleanUri.toString());
   }
 
