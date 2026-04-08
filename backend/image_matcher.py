@@ -24,27 +24,7 @@ def load_image(url):
 
 
 # ---------------- PREPROCESSING ----------------
-def preprocess_image(img):
-    # 1. Resize
-    img = cv2.resize(img, (400, 400))
 
-    # 2. Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # 3. Noise Reduction
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # 4. Normalization
-    gray = cv2.equalizeHist(gray)
-
-    # 5. Background reduction (center crop)
-    h, w = gray.shape
-    gray = gray[int(h * 0.1):int(h * 0.9), int(w * 0.1):int(w * 0.9)]
-
-    # 6. Edge Enhancement
-    edges = cv2.Canny(gray, 100, 200)
-
-    return edges
 
 
 # ---------------- IMAGE COMPARISON ----------------
@@ -60,29 +40,7 @@ def compare_images(url1, url2):
         return 0
 
     # 🔥 Apply preprocessing
-    proc1 = preprocess_image(img1)
-    proc2 = preprocess_image(img2)
-
-    orb = cv2.ORB_create(nfeatures=1500)
-
-    kp1, des1 = orb.detectAndCompute(proc1, None)
-    kp2, des2 = orb.detectAndCompute(proc2, None)
-
-    if des1 is None or des2 is None:
-        print("❌ No descriptors found")
-        return 0
-
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-    matches = bf.knnMatch(des1, des2, k=2)
-
-    good = []
-    for m, n in matches:
-        if m.distance < 0.75 * n.distance:
-            good.append(m)
-
-    print("✅ Good matches:", len(good))
-
-    return len(good)
+   
 
 
 # ---------------- MAIN MATCHING LOOP ----------------
