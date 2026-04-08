@@ -2,12 +2,25 @@ import cv2
 import numpy as np
 import requests
 import time
+from torchvision import models, transforms
+import torch
+from PIL import Image
+from io import BytesIO
 from supabase import create_client
 
 SUPABASE_URL = "https://twhahfakfvuunofvatbh.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3aGFoZmFrZnZ1dW5vZnZhdGJoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTg0MzE1NCwiZXhwIjoyMDg1NDE5MTU0fQ.qPvbzCoIAPb2byDu30rHE_UEDFF7qqmVqx-w4wnjQoE"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+model = models.mobilenet_v2(pretrained=True)
+model.eval()
+model = model.features
+
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+])
 
 
 # ---------------- IMAGE LOADER ----------------
@@ -23,8 +36,23 @@ def load_image(url):
         return None
 
 
-# ---------------- PREPROCESSING ----------------
+def get_embedding(url):
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code != 200:
+            return None
 
+        img = Image.open(BytesIO(response.content)).convert("RGB")
+        img = transform(img).unsqueeze(0)
+
+        with torch.no_grad():
+            embedding = model(img)
+
+        return embedding.flatten()
+
+    except Exception as e:
+        print("Embedding error:", e)
+        return None
 
 
 # ---------------- IMAGE COMPARISON ----------------
@@ -32,16 +60,19 @@ def compare_images(url1, url2):
     print("🖼️ Image1:", url1)
     print("🖼️ Image2:", url2)
 
-    img1 = load_image(url1)
-    img2 = load_image(url2)
+    emb1 = get_embedding(url1)
+    emb2 = get_embedding(url2)
 
-    if img1 is None or img2 is None:
-        print("❌ Image loading failed")
+    if emb1 is None or emb2 is None:
         return 0
 
+    similarity = torch.nn.functional.cosine_similarity(emb1, emb2, dim=0)
+
+    print("✅ Similarity:", similarity.item())
+
+    return similarity.item()
     # 🔥 Apply preprocessing
    
-
 
 # ---------------- MAIN MATCHING LOOP ----------------
 def match_single_item(new_item):
@@ -75,7 +106,7 @@ def match_single_item(new_item):
         score = compare_images(img1, img2)
         print("Similarity score:", score)
 
-        if score > 70:
+        if score > 0.75:
             print("✅ MATCH FOUND")
 
             lost_item = new_item if new_item["type"] == "lost" else item
