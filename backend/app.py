@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # 🔥 Start background thread
     threading.Thread(target=background_matcher, daemon=True).start()
 
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))
     print("🚀 Server starting on port", port)
 
     app.run(host="0.0.0.0", port=port)
